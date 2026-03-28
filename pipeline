@@ -23,8 +23,14 @@ pipeline {
         }
         stage('deploy') {
             steps {
-                echo "tomcat deployment done"
+                deploy adapters: [tomcat9(alternativeDeploymentContext: '', credentialsId: 'tomcatcreds', path: '', url: 'http://44.204.249.27:8080/')], contextPath: 'myapp', war: '**/*.war'
+            }
+        }
+        stage('push to s3') {
+            steps { withAWS(credentials: 's3creds', region: 'us-east-1') { 
+                s3Upload( bucket: 'jenkins-pipeline-artii', file: 'target/myapp.war', path: '/' ) 
+                }
             }
         }
     }
-}
+}    
