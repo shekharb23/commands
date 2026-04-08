@@ -1,7 +1,0 @@
----
-- name: My First Playbook with Ping module
-  hosts: all
-
-  tasks:
-  - name: Test Connectivity
-    ping:
