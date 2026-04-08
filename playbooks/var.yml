@@ -1,0 +1,13 @@
+---
+- name: Static variables
+  hosts: all
+  vars:
+    a: git
+    b: maven
+
+  tasks:
+    - name: Installing Git
+      yum: name={{a}} state=absent
+
+    - name: Installing maven
+      yum: name={{b}} state=absent

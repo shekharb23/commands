@@ -1,0 +1,12 @@
+---
+- name: Apache Playbook
+  hosts: all
+  become: yes
+  tasks:
+    - name: Uninstalling Apache
+      yum:
+        name: httpd
+        state: absent
+    - name: Print message
+      debug: msg="Apache uninstalled"
+ 

@@ -1,0 +1,13 @@
+---
+- name: Install git, Dockr and start
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installing Git
+      yum: name=git state=present
+
+    - name: Installing Docker
+      yum: name=docker state=present
+
+    - name: Starting Docker
+      service: name=docker state=started

@@ -1,0 +1,14 @@
+---
+- name: loop playbook
+  hosts: all
+  become: yes
+  gather_facts: false
+  tasks:
+    - name: installing softwares
+      yum: name={{item}} state=absent
+      with_items:
+        - git
+        - maven
+        - docker
+        - tree
+        - httpd
