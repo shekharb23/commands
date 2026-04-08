@@ -1,0 +1,46 @@
+Git
+- integrated git
+Maven
+- integrated maven
+Tomcat
+- Launch new ec2 instance
+- install tomcat using tomcat.sh
+- open tomcat dashboard using ip:8080
+- integrated tomcat with jenkins pipeline
+- installed plugin - deploy to container
+- credentials - tomcat creds with user name and pass
+- generated script
+S3 upload
+- creat s3 bucket
+- created -keys access key -secret key
+- installed plugin -aws steps
+- cerdentials - aws credentials
+SonarQube
+- install sonarqube in new instance using script
+- start sonarqube dashboard with public i/p and 9000 port no
+- install plugin in jenkins
+ - sonarqube scanner
+ - sonarqqube quality gate
+ - maven
+-CST
+ - Credentials - secret text
+ - System - sonarqube servers - enable environment variables - add sonarqube - name - give sonar i/p - select token
+ - Tools - sonarqube scanner installation - add sonar scanner - name - install automatically
+- Configure sonarqube in jenkins pipeline
+Nexus
+- Install nexux manually in new ubuntu ec2 instance
+- open nexus dashboard with ip:8081
+- create repo
+- in jenkins create credentials and install plugins nexus uploader
+- generate pipeline syntax & select nexus artifact uploader
+ - nexus version -3
+ - protocol - http
+ - nexus url with portno without http://
+ - credentials select
+ - grp ID, version,artiact ID--select from POM
+ - type - .war
+ - file - target/myapp.war
+
+
+
+
