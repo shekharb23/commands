@@ -1,0 +1,12 @@
+---
+- name: notify and handlers
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installing Apache
+      yum: name=httpd state=present
+      notify: starting apache
+
+  handlers:
+    - name: starting apache
+      service: name=httpd state=started
