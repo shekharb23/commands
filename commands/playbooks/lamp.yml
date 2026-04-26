@@ -1,0 +1,13 @@
+---
+- name: lamp playbook
+  hosts: all
+  become: yes
+  tasks:
+    - name: installing apache
+      yum: name=httpd state=present
+
+    - name: installing Mysql
+      yum: name=mysql state=present
+
+    - name: installing Python
+      yum: name=mysql state=present

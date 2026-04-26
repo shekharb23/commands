@@ -1,0 +1,11 @@
+---
+- name: creating users using loops
+  hosts: all
+  tasks:
+    - name: creating users
+      user: name={{item}} state=absent
+      loop:
+        - mariya
+        - roshan
+        - raj
+        - raja

@@ -1,0 +1,9 @@
+---
+- name: Dynamic var Playbook
+  hosts: all
+  tasks:
+    - name: Installing PKGS
+      yum: name={{a}} state=present
+
+    - name: Installing PKGS
+      yum: name={{a}} state=present

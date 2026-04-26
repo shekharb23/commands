@@ -1,0 +1,13 @@
+---
+- name: shell in playbook
+  hosts: all
+  become: yes
+  tasks:
+    - name: removeing git
+      shell: yum remove -y git
+
+    - name: removeing apache
+      shell: yum remove httpd -y
+
+    - name: removeing maven
+      shell: yum remove maven -y

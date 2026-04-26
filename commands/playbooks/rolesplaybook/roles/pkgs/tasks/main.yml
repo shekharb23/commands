@@ -1,0 +1,6 @@
+---
+- name: install pkgs
+  yum: name={{item}} state=absent
+  loop:
+    - git
+    - maven

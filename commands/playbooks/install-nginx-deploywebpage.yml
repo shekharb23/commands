@@ -1,0 +1,25 @@
+---
+- name: install nginx and starting it
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Nginx
+      dnf:
+        name: nginx
+        state: present
+
+    - name: Starting Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Deploying a web page
+      copy:
+        src: index.html
+        dest: /usr/share/nginx/html/index.html
+
+    - name: Restarting Nginx Service
+      service:
+        name: nginx
+        state: restarted

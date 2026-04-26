@@ -1,0 +1,11 @@
+---
+- name: Create users and copy files
+  hosts: all
+  become: yes
+  tasks:
+
+    - name: Creating user
+      user: name=raj state=present
+
+    - name: copy files
+      copy: src=shekhar.txt dest=/home/ec2-user/
