@@ -1,0 +1,22 @@
+Install jenkins using jenkins.sh on master
+Install Ansible using ansible.sh
+create below files manually
+1. context.xml
+2. tomcat-users.xml
+write a playbook to install and setup tomcat using tomcat-installations.yml
+See tomcat dashboard using client i/p
+start jenkins
+writes pipeline stages 
+for ansible
+1. plugins - ansible
+2. credentials - ssh username (root) & private key (cat ~/.ssh/id_rsa)
+3. Tools - ansible installations 
+ - name- ansible
+ - path - /usr/local/bin
+create deploy.war file to copy war file from /var/lib/jenkins/workspace/projectname/target folder     to /etc/ansible
+Create pipeline syntax for invoke ansible playbook
+Playbook file path in workspace - /etc/ansible/deploy.yml
+Inventory file path in workspace - /etc/ansible/hosts
+select creds
+uncheck Disable the host SSH key check
+run the pipeline
