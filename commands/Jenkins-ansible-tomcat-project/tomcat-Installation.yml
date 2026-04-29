@@ -1,0 +1,64 @@
+---
+- name: setup tomcat
+  hosts: all
+  become: yes
+  tasks:
+    - name: Download tomcat
+      get_url:
+        url: "https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.15/bin/apache-tomcat-10.1.15.tar.gz"
+        dest: "/root/"
+
+    - name: untar apache file
+      command: tar -zxvf apache-tomcat-10.1.15.tar.gz
+
+    - name: rename the tomcat
+      command: mv apache-tomcat-10.1.15 tomcat
+
+    - name: Install the latest java
+      yum:
+        name: java-21-amazon-corretto
+        state: present
+
+    - name: setting roles in tomcat-users.xmlfile
+      template:
+        src: context.xml
+        dest: /root/tomcat/webapps/manager/META-INF/context.xml
+
+    - name: copy tomcat-users.xml
+      copy:
+        src: tomcat-users.xml
+        dest: /root/tomcat/conf/tomcat-users.xml
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: create tomcat systemd service file
+      copy:
+        dest: /etc/systemd/system/tomcat.service
+        content: |
+          [Unit]
+          Description=Apache Tomcat Server
+          After=network.target
+
+          [Service]
+          User=root
+          Group=root
+          Type=forking
+          Environment="JAVA_HOME=/usr/lib/jvm/java-21-amazon-corretto.x86_64"
+          Environment="CATALINA_HOME=/root/tomcat"
+          ExecStart=/root/tomcat/bin/startup.sh
+          ExecStop=/root/tomcat/bin/shutdown.sh
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: reload systemd
+      systemd:
+        daemon_reload: yes
+
+    - name: start tomcat service
+      service:
+        name: tomcat
+        state: started
+        enabled: yes
