@@ -1,0 +1,11 @@
+---
+- name: deploying war file to tomcat server
+  hosts: all
+  tasks:
+    - name: deploying war to tomcat
+      copy:
+        src: /var/lib/jenkins/workspace/jenkinsansibletomcatproject/target/myapp.war
+        dest: /root/tomcat/webapps
+        owner: root
+        group: root
+        mode: '0644'
