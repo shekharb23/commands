@@ -1,0 +1,184 @@
+#!/bin/bash
+
+set -euo pipefail
+
+#########################################################
+# Versions
+#########################################################
+PROMETHEUS_VERSION="3.7.2"
+NODE_EXPORTER_VERSION="1.9.1"
+
+#########################################################
+# Base directories (NO /tmp used)
+#########################################################
+BASE_DIR="/opt/monitoring"
+BUILD_DIR="$BASE_DIR/build"
+
+rm -rf "$BASE_DIR"
+mkdir -p "$BUILD_DIR"
+mkdir -p /etc/prometheus
+mkdir -p /var/lib/prometheus
+
+#########################################################
+# Retry download function
+#########################################################
+download_with_retry() {
+  URL="$1"
+  OUTPUT="$2"
+  RETRIES=5
+  COUNT=1
+
+  while [ $COUNT -le $RETRIES ]; do
+    echo "Downloading attempt $COUNT/$RETRIES: $URL"
+
+    rm -f "$OUTPUT"
+
+    if wget -q --show-progress -O "$OUTPUT" "$URL"; then
+      [ -s "$OUTPUT" ] && return 0
+    fi
+
+    echo "Download failed, retrying..."
+    COUNT=$((COUNT+1))
+    sleep 5
+  done
+
+  echo "ERROR: Download failed after retries"
+  exit 1
+}
+
+#########################################################
+# Install dependencies
+#########################################################
+dnf install -y wget tar gzip shadow-utils
+
+#########################################################
+# Create users
+#########################################################
+id prometheus >/dev/null 2>&1 || useradd --system --no-create-home --shell /sbin/nologin prometheus
+id node_exporter >/dev/null 2>&1 || useradd --system --no-create-home --shell /sbin/nologin node_exporter
+
+#########################################################
+# ================= PROMETHEUS =================
+#########################################################
+cd "$BUILD_DIR"
+
+PROM_URL="https://github.com/prometheus/prometheus/releases/download/v${PROMETHEUS_VERSION}/prometheus-${PROMETHEUS_VERSION}.linux-amd64.tar.gz"
+
+download_with_retry "$PROM_URL" "prometheus.tar.gz"
+
+rm -rf prometheus-src
+mkdir prometheus-src
+
+tar -xzf prometheus.tar.gz -C prometheus-src --strip-components=1
+
+cd prometheus-src
+
+cp prometheus /usr/local/bin/
+cp promtool /usr/local/bin/
+
+cat > /etc/prometheus/prometheus.yml <<EOF
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: node_exporter
+    static_configs:
+      - targets: ['localhost:9100']
+EOF
+
+chown -R prometheus:prometheus /etc/prometheus
+chown -R prometheus:prometheus /var/lib/prometheus
+
+cat > /etc/systemd/system/prometheus.service <<EOF
+[Unit]
+Description=Prometheus
+After=network.target
+
+[Service]
+User=prometheus
+ExecStart=/usr/local/bin/prometheus \
+  --config.file=/etc/prometheus/prometheus.yml \
+  --storage.tsdb.path=/var/lib/prometheus
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+#########################################################
+# ================= NODE EXPORTER =================
+#########################################################
+cd "$BUILD_DIR"
+
+NODE_URL="https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz"
+
+download_with_retry "$NODE_URL" "node_exporter.tar.gz"
+
+rm -rf node-src
+mkdir node-src
+
+tar -xzf node_exporter.tar.gz -C node-src --strip-components=1
+
+cd node-src
+
+cp node_exporter /usr/local/bin/
+
+cat > /etc/systemd/system/node_exporter.service <<EOF
+[Unit]
+Description=Node Exporter
+After=network.target
+
+[Service]
+User=node_exporter
+ExecStart=/usr/local/bin/node_exporter
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+#########################################################
+# ================= GRAFANA =================
+#########################################################
+rpm --import https://rpm.grafana.com/gpg.key
+
+cat > /etc/yum.repos.d/grafana.repo <<EOF
+[grafana]
+name=Grafana
+baseurl=https://rpm.grafana.com
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://rpm.grafana.com/gpg.key
+EOF
+
+dnf clean all
+dnf makecache
+dnf install -y grafana
+
+#########################################################
+# ================= START SERVICES =================
+#########################################################
+systemctl daemon-reload
+systemctl enable --now prometheus
+systemctl enable --now node_exporter
+systemctl enable --now grafana-server
+
+#########################################################
+# OUTPUT
+#########################################################
+IP=$(hostname -I | awk '{print $1}')
+
+echo "======================================"
+echo "INSTALLATION SUCCESSFUL"
+echo "======================================"
+echo "Prometheus      : http://$IP:9090"
+echo "Grafana         : http://$IP:3000"
+echo "Node Exporter   : http://$IP:9100/metrics"
+echo "======================================"
